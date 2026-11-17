@@ -49,7 +49,7 @@ WHERE c.open = 0 ORDER BY c.ts;
 `.github/workflows/track.yml` runs every 2 hours and commits `data/`. To set it up:
 1. Create a **public** repo on GitHub and push this folder to it.
 2. In the repo, open **Actions**, enable workflows, then run **Track seats** once with **Run workflow**.
-3. In `extension/background.js`, set `FILL_REPO` to `"<your-username>/<repo-name>"`.
+3. The extension reads from `oxilin/rrate`. If the repo moves, update `FILL_REPO` in `extension/background.js`.
 
 GitHub turns off scheduled workflows in repos with no activity for 60 days. The tracker's own commits normally keep it active.
 

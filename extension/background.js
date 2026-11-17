@@ -105,7 +105,7 @@ browser.runtime.onMessage.addListener(msg => {
 
 // ---------- Seat fill-up history (from the seat tracker's public GitHub repo) ----------
 // Set this to "<your GitHub username>/<repo name>" once the tracker repo is on GitHub.
-const FILL_REPO = "YOUR_GITHUB_USERNAME/ucr-registration-tools";
+const FILL_REPO = "oxilin/rrate";
 const FILL_TTL_MS = 30 * 60 * 1000; // the tracker updates every 2 hours
 
 const fillMemo = new Map();
