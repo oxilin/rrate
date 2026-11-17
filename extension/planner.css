@@ -1,0 +1,46 @@
+.rr-fab {
+  position: fixed; right: 20px; bottom: 70px; z-index: 2147483000;
+  background: #1f3a6e; color: #fff; border: 0; border-radius: 20px;
+  padding: 9px 16px; font: 600 13px -apple-system, sans-serif; cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0,0,0,.25);
+}
+.rr-fab:hover { background: #2b4e93; }
+
+.rr-panel {
+  position: fixed; top: 70px; right: 20px; bottom: 120px; width: 620px; z-index: 2147483000;
+  background: #fff; border: 1px solid #ccd; border-radius: 10px; box-shadow: 0 8px 30px rgba(0,0,0,.25);
+  display: flex; flex-direction: column; font: 13px/1.4 -apple-system, sans-serif; color: #222;
+}
+.rr-hidden { display: none; }
+.rr-head { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid #eee; font-size: 15px; }
+.rr-x { border: 0; background: none; font-size: 20px; cursor: pointer; color: #666; }
+.rr-controls { display: flex; gap: 12px; align-items: center; padding: 8px 14px; border-bottom: 1px solid #eee; }
+.rr-controls label { white-space: nowrap; }
+.rr-term { padding: 3px; }
+.rr-picked { padding: 0 14px; background: #f3f7ff; }
+.rr-picked:not(:empty) { padding: 6px 14px; border-bottom: 1px solid #dde6f7; }
+.rr-picked button, .rr-foot button { margin-left: 4px; font-size: 12px; }
+.rr-list { overflow-y: auto; flex: 1; padding: 6px 0; }
+.rr-block { padding: 10px 14px 4px; font-weight: 700; color: #1f3a6e; text-transform: uppercase; font-size: 11px; letter-spacing: .04em; }
+.rr-req { padding: 7px 14px; cursor: pointer; border-left: 3px solid transparent; }
+.rr-req:hover { background: #f6f8fc; border-left-color: #1f3a6e; }
+.rr-req-title { font-weight: 600; }
+.rr-req-opts { color: #555; font-size: 12px; }
+.rr-sections { padding: 4px 14px 10px 24px; }
+.rr-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.rr-table th { text-align: left; color: #666; font-weight: 600; border-bottom: 1px solid #ddd; padding: 3px 4px; }
+.rr-table td { border-bottom: 1px solid #f0f0f0; padding: 4px; vertical-align: top; }
+.rr-table tr.rr-conflict td { background: #fff5f5; }
+.rr-pick { width: 26px; cursor: pointer; }
+.rr-ok { color: #17692f; font-weight: 600; }
+.rr-full { color: #a12121; }
+.rr-err { color: #a12121; font-size: 12px; }
+.rr-muted { color: #888; font-weight: 400; }
+.rr-foot { padding: 8px 14px; border-top: 1px solid #eee; }
+.rr-flash { color: #17692f; }
+.rr-req-done { opacity: .6; }
+.rr-badge-reg { margin-left: 6px; font-size: 11px; color: #17692f; background: #e3f5e8; border-radius: 8px; padding: 0 6px; font-weight: 600; }
+.rr-note { color: #a15c00; font-size: 11px; cursor: help; }
+.rr-fill { color: #666; font-size: 11px; white-space: nowrap; }
+.rr-spark { vertical-align: middle; }
+.rr-spark path { fill: none; stroke: #1f3a6e; stroke-width: 1.5; }

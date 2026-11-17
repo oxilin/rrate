@@ -1,0 +1,4 @@
+seats.db
+__pycache__/
+.DS_Store
+*.zip

@@ -1,0 +1,30 @@
+{
+  "manifest_version": 2,
+  "name": "R'Rate – UCR Registration Helper",
+  "version": "0.5.0",
+  "description": "RMP scores on UCR registration, plus a panel that finds sections for your unmet Degree Works requirements, with real open seats and fill-up history.",
+  "browser_specific_settings": {
+    "gecko": { "id": "r-rate@ucr-student.local", "strict_min_version": "109.0" }
+  },
+  "permissions": [
+    "storage",
+    "clipboardWrite",
+    "https://www.ratemyprofessors.com/*",
+    "https://raw.githubusercontent.com/*"
+  ],
+  "background": { "scripts": ["background.js"] },
+  "web_accessible_resources": ["dw-hook.js"],
+  "content_scripts": [
+    {
+      "matches": ["https://registrationssb.ucr.edu/*"],
+      "js": ["content.js", "planner.js"],
+      "css": ["styles.css", "planner.css"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://degreeworks.ucr.edu/*"],
+      "js": ["dw-content.js"],
+      "run_at": "document_start"
+    }
+  ]
+}
