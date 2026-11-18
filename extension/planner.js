@@ -57,6 +57,46 @@
     return bannerGet(`/classSearch/getTerms?searchTerm=&offset=1&max=15&_=${Date.now()}`);
   }
 
+  // ---------- Prerequisites ----------
+  // Banner writes prerequisites with full subject names ("Computer Science 011"), so map
+  // names to codes using the subject lists of this term and a few earlier ones.
+  const subjectCache = new Map();
+  function getSubjects(term, allTerms) {
+    if (subjectCache.has(term)) return subjectCache.get(term);
+    const p = (async () => {
+      const codes = [term, ...(allTerms || []).map(t => t.code).filter(c => c !== term).slice(0, 4)];
+      const map = {};
+      for (const code of codes.reverse()) { // newer terms win
+        try {
+          const list = await bannerGet(`/classSearch/get_subject?searchTerm=&term=${code}&offset=1&max=500&_=${Date.now()}`);
+          for (const x of list || []) map[RRPrereq.nameKey(x.description)] = x.code;
+        } catch (err) { lastErrors.push(`subjects ${code}: ${err}`); }
+      }
+      return map;
+    })();
+    subjectCache.set(term, p);
+    return p;
+  }
+
+  const PRQ_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+  const prqMemo = new Map();
+  function getPrereqs(term, section) {
+    const key = `prq:${term}:${section.subject} ${section.courseNumber}`;
+    if (prqMemo.has(key)) return prqMemo.get(key);
+    const p = (async () => {
+      const cached = (await browser.storage.local.get(key))[key];
+      if (cached && Date.now() - cached.t < PRQ_TTL_MS) return cached.v;
+      const html = await bannerPost("/searchResults/getSectionPrerequisites",
+        { term, courseReferenceNumber: section.courseReferenceNumber });
+      const v = RRPrereq.parse(html);
+      await browser.storage.local.set({ [key]: { t: Date.now(), v } });
+      return v;
+    })();
+    prqMemo.set(key, p);
+    p.catch(() => prqMemo.delete(key));
+    return p;
+  }
+
   const searchCache = new Map();
   function searchSections(term, params) {
     const key = term + JSON.stringify(params);
@@ -314,7 +354,7 @@
 
   // ---------- UI ----------
   const el = (tag, attrs = {}, ...kids) => {
-    const e = document.createElement(tag);
+    const e = typeof tag === "string" ? document.createElement(tag) : tag;
     for (const [k, v] of Object.entries(attrs)) {
       if (k === "class") e.className = v;
       else if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
@@ -338,7 +378,7 @@
     panel.dataset.loaded = "1";
     panel.replaceChildren(el("div", { class: "rr-muted" }, "Loading…"));
 
-    const { dwRequirements, dwCapturedAt, dwError } = await browser.storage.local.get(["dwRequirements", "dwCapturedAt", "dwError"]);
+    const { dwRequirements, dwCapturedAt, dwError, dwClasses } = await browser.storage.local.get(["dwRequirements", "dwCapturedAt", "dwError", "dwClasses"]);
     let terms = [];
     try { terms = await getTerms(); } catch (err) { lastErrors.push("terms: " + err); }
 
@@ -357,10 +397,13 @@
 
     const openOnly = el("input", { type: "checkbox", id: "rr-open" });
     const noConflict = el("input", { type: "checkbox", id: "rr-nc" });
+    const hidePrq = el("input", { type: "checkbox", id: "rr-prq" });
+    hidePrq.addEventListener("change", () => panel.classList.toggle("rr-hide-noprq", hidePrq.checked));
     const controls = el("div", { class: "rr-controls" },
       termSel,
       el("label", {}, openOnly, " Open seats only"),
-      el("label", {}, noConflict, " Hide conflicts"));
+      el("label", {}, noConflict, " Hide conflicts"),
+      el("label", { title: "Hide courses whose prerequisites you're missing" }, hidePrq, " Hide courses I can't take"));
 
     const pickedBar = el("div", { class: "rr-picked" });
     function refreshPicked() {
@@ -426,6 +469,44 @@
       }
     }
 
+    async function prereqBadge(section, badge, courseBox) {
+      const term = termSel.value;
+      const set = (cls, text, tip) => {
+        badge.className = "rr-prq " + cls;
+        badge.textContent = text;
+        if (tip) badge.title = tip;
+      };
+      try {
+        if (!Array.isArray(dwClasses)) {
+          set("rr-prq-check", "⚠ reopen Degree Works to check prereqs",
+            "This R'Rate version also saves the classes you've taken. Open Degree Works once, then reopen this panel.");
+          return;
+        }
+        const [parsed, subjects] = await Promise.all([getPrereqs(term, section), getSubjects(term, terms)]);
+        const r = RRPrereq.check(parsed, dwClasses, subjects, term);
+        const e = RRPrereq.explain(r);
+        const note = r.note ? `\nCatalog note: ${r.note}` : "";
+        const lines = [
+          e.met.length ? "Have: " + e.met.join(", ") : "",
+          e.pending.length ? "In progress: " + e.pending.join(", ") : "",
+          e.missing.length ? "Missing: " + e.missing.join("; ") : "",
+          e.check.length ? "Can't check automatically: " + e.check.join("; ") : ""
+        ].filter(Boolean).join("\n") + note;
+        if (r.status === "none") set("rr-prq-none", "no prereqs listed", note.trim() || undefined);
+        else if (r.status === "yes") set("rr-prq-yes", "✓ prereqs met", lines);
+        else if (r.status === "pending") set("rr-prq-pending", `⏳ prereqs met if you pass ${e.pending.join(", ")}`, lines);
+        else if (r.status === "no") {
+          const short = t => t.replace(/ \([^)]*or better\)/g, "");
+          set("rr-prq-no", `✗ missing ${e.missing.map(short).join("; ")}`, lines);
+          courseBox.classList.add("rr-course-noprq");
+        } else set("rr-prq-check", e.check.some(t => /placement/i.test(t))
+            ? "⚠ check prereqs (placement score counts)" : "⚠ check prereqs (hover for details)", lines || r.note);
+      } catch (err) {
+        lastErrors.push(`prereqs ${section.subject} ${section.courseNumber}: ${err}`);
+        set("rr-prq-check", "⚠ couldn't load prereqs", String(err));
+      }
+    }
+
     function sectionTable(sections, fill) {
       const fillOf = s => (fill && fill.s && fill.s[s.courseReferenceNumber]) || null;
       if (fill && fill.error) lastErrors.push("fill: " + fill.error);
@@ -464,9 +545,12 @@
         }
         const types = [...byType].sort((a, b) => typeRank(a[0]) - typeRank(b[0]) || a[0].localeCompare(b[0]));
         const openCount = l => l.filter(s => realOpen(s) > 0).length;
-        return el("div", { class: "rr-course" },
+        const badge = el("span", { class: "rr-prq rr-prq-wait" }, "checking prereqs…");
+        const courseBox = el("div", { class: "rr-course" });
+        prereqBadge(list[0], badge, courseBox);
+        return el(courseBox, {},
           el("div", { class: "rr-course-title" }, course,
-            el("span", { class: "rr-course-name" }, " · " + titleCase(list[0].courseTitle || ""))),
+            el("span", { class: "rr-course-name" }, " · " + titleCase(list[0].courseTitle || "")), " ", badge),
           types.map(([type, secs], i) => {
             const n = openCount(secs);
             const det = el("details", { class: "rr-type" },

@@ -112,6 +112,33 @@
     return out;
   }
 
+  // Every class on the audit (taken, in progress, registered, transfer), for prerequisite checks.
+  // Degree Works lists them under classInformation.classArray and again under each rule's
+  // classesAppliedToRule, so walk the whole audit and keep anything that looks like a class.
+  function extractClasses(audit) {
+    const out = new Map();
+    const seen = new WeakSet();
+    const yes = v => v === true || /^(y|yes|true)$/i.test(String(v || ""));
+    (function walk(node) {
+      if (!node || typeof node !== "object" || seen.has(node)) return;
+      seen.add(node);
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (node.discipline && node.number && ("letterGrade" in node || "grade" in node)) {
+        const g = String(node.letterGrade ?? node.grade ?? "").trim();
+        const c = {
+          s: String(node.discipline).trim().toUpperCase(),
+          n: String(node.number).trim().toUpperCase(),
+          g,
+          ip: yes(node.inProgress) || yes(node.preregistered) || /^(IP|REG|PR|PREREG)$/i.test(g),
+          term: String(node.term || node.termCode || "").trim()
+        };
+        if (c.s && c.n && !/^-+$/.test(c.n)) out.set(`${c.s}|${c.n}|${c.g}|${c.term}|${c.ip}`, c);
+      }
+      for (const v of Object.values(node)) if (v && typeof v === "object") walk(v);
+    })(audit);
+    return [...out.values()];
+  }
+
   function toast(text) {
     const t = document.createElement("div");
     t.textContent = text;
@@ -165,6 +192,7 @@
     captured = true;
     const e = { data: { url: how } };
     const requirements = parseAudit(audit);
+    const classes = extractClasses(audit);
     // Small structural sample for debugging (no grades), in case parsing needs fixing.
     const debugSample = {
       capturedVia: e.data.url,
@@ -177,8 +205,13 @@
         }))
       }))
     };
-    await browser.storage.local.set({ dwRequirements: requirements, dwCapturedAt: Date.now(), dwDebug: debugSample });
+    // Field names of a couple of classes (not grades) so class parsing can be fixed if needed.
+    const rawClasses = audit.classInformation && audit.classInformation.classArray;
+    debugSample.classCount = classes.length;
+    debugSample.classKeys = Array.isArray(rawClasses) && rawClasses[0] ? Object.keys(rawClasses[0]) : null;
+    debugSample.classSample = classes.slice(0, 3).map(c => ({ ...c, g: c.g ? "(grade)" : "" }));
+    await browser.storage.local.set({ dwRequirements: requirements, dwClasses: classes, dwCapturedAt: Date.now(), dwDebug: debugSample });
     await browser.storage.local.remove("dwError");
-    status(`saved ${requirements.length} unmet requirement${requirements.length === 1 ? "" : "s"} (via ${how}). Open the Registration page and click "Requirements".`, "ok");
+    status(`saved ${requirements.length} unmet requirement${requirements.length === 1 ? "" : "s"} and ${classes.length} classes for prerequisite checks (via ${how}). Open the Registration page and click "Requirements".`, "ok");
   }
 })();

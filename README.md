@@ -59,4 +59,5 @@ Install it temporarily: go to `about:debugging#/runtime/this-firefox`, click **L
 
 In the Requirements panel, the seat column now shows:
 - **Real open seats.** A small "not open to you ⓘ" or "fewer than listed ⓘ" note appears when Banner's number is misleading. Hover over it for details.
+- **Prerequisite badge** on each course: ✓ met, ⏳ met if you pass a course you're taking now, ✗ missing (names what's missing), or ⚠ check manually (placement scores, catalog-only notes). Hover for details. "Hide courses I can't take" hides the ✗ ones. Prerequisites come from Banner's `getSectionPrerequisites`; your classes and grades come from the Degree Works audit, so open Degree Works once after updating.
 - **Fill history** from the tracker: a sparkline of open seats over time, plus notes like "−8 in last day", "filled Nov 20", "reopened 2×" and "full since tracking began".
