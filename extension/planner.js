@@ -168,23 +168,38 @@
   }
 
   // One short line about how this section has filled, e.g. "filled Nov 20 · reopened 2×".
-  function fillLine(f) {
+  // liveOpen is what Banner says right now; the tracker's data can be up to 2 hours old,
+  // so "full"-type notes are only shown when the section is still full.
+  function fillLine(f, liveOpen) {
     if (!f) return null;
     const bits = [];
-    if (f.o > 0 && f.h) {
+    const nowOpen = liveOpen == null ? f.o : liveOpen;
+    if (nowOpen > 0 && f.h) {
       const dayAgo = Date.now() / 1000 - 86400;
       const before = [...f.h].reverse().find(p => p[0] <= dayAgo);
-      if (before && before[1] > f.o) bits.push(`−${before[1] - f.o} in last day`);
+      if (before && before[1] > nowOpen) bits.push(`−${before[1] - nowOpen} in last day`);
     }
-    if (f.f) bits.push(`filled ${fmtDate(f.f)}`);
-    if (f.fb) bits.push("full since tracking began");
+    if (nowOpen === 0) {
+      if (f.f) bits.push(`filled ${fmtDate(f.f)}`);
+      if (f.fb) bits.push("full since tracking began");
+      if (f.lo && !f.f) bits.push(`last open ${fmtDate(f.lo)}`);
+    }
     if (f.r) bits.push(`reopened ${f.r}×`);
-    if (f.o === 0 && f.lo && !f.f) bits.push(`last open ${fmtDate(f.lo)}`);
     if (!bits.length && !f.h) return null;
     return el("div", { class: "rr-fill" }, f.h ? sparkline(f.h) : null, bits.length ? " " + bits.join(" · ") : null);
   }
 
   // ---------- Section helpers ----------
+  const TYPE_ORDER = ["Lecture", "Discussion", "Workshop", "Laboratory", "Studio", "Seminar", "Activity"];
+  const typeName = s => (s.scheduleTypeDescription || "Other").trim() || "Other";
+  const typeRank = t => { const i = TYPE_ORDER.indexOf(t); return i < 0 ? TYPE_ORDER.length : i; };
+  const plural = (t, n) => {
+    const label = t === "Laboratory" ? "Lab" : t;
+    return `${n} ${n === 1 ? label : label.replace(/y$/, "ie") + "s"}`;
+  };
+  const titleCase = t => t.toLowerCase().replace(/\b([a-z])/g, m => m.toUpperCase())
+    .replace(/\b(And|Or|Of|The|In|For|To|With|A|An)\b/g, w => w.toLowerCase()).replace(/^./, c => c.toUpperCase())
+    .replace(/\b(Ii|Iii|Iv)\b/g, w => w.toUpperCase());
   const toMin = hhmm => (hhmm ? parseInt(hhmm.slice(0, 2), 10) * 60 + parseInt(hhmm.slice(2), 10) : null);
   const fmtTime = m => {
     const h = Math.floor(m / 60), mm = String(m % 60).padStart(2, "0");
@@ -432,37 +447,69 @@
           : `No sections came back from Banner for this term. If you can find it in the normal search, click "Copy debug info" and send it to Claude.`);
       }
 
-      return el("table", { class: "rr-table" },
-        el("tr", {}, ["Course", "Type", "When", "Seats", "Instructor", ""].map(h => el("th", {}, h))),
-        rows.map(s => {
-          const c = conflicts(s, mine);
-          const prof = (s.faculty || []).find(f => f.primaryIndicator) || (s.faculty || [])[0];
-          const open = realOpen(s), note = seatNote(s);
-          const seats = [
-            open > 0
-              ? el("span", { class: "rr-ok" }, `${open}/${s.maximumEnrollment}`)
-              : el("span", { class: "rr-full" }, `Full · WL ${s.waitCount ?? "?"}/${s.waitCapacity ?? "?"}`),
-            note ? el("div", { class: "rr-note", title: note }, open > 0 ? "fewer than listed ⓘ" : "not open to you ⓘ") : null,
-            fillLine(fillOf(s))
-          ];
-          const crn = s.courseReferenceNumber;
-          const pickBtn = el("button", { class: "rr-pick" }, picked.has(crn) ? "✓" : "+");
-          pickBtn.addEventListener("click", () => {
-            if (picked.has(crn)) picked.delete(crn); else picked.set(crn, `${s.subject} ${s.courseNumber}`);
-            pickBtn.textContent = picked.has(crn) ? "✓" : "+";
-            refreshPicked();
-          });
-          return el("tr", { class: c && c.length ? "rr-conflict" : "" },
-            el("td", {}, `${s.subject} ${s.courseNumber}-${s.sequenceNumber}`, el("div", { class: "rr-muted" }, `CRN ${crn}`)),
-            el("td", {}, s.scheduleTypeDescription || "",
-              s.linkIdentifier ? el("div", { class: "rr-muted", title: "Linked sections: a lecture (L…) must be paired with one discussion/lab (D…/B…)" }, `link ${s.linkIdentifier}`) : null),
-            el("td", {}, meetingText(s),
-              c && c.length ? el("div", { class: "rr-err" }, "Conflicts: " + c.join(", ")) : null),
-            el("td", {}, seats),
-            // data-property="instructor" + a.email lets the RMP badge script pick this up automatically.
-            el("td", { "data-property": "instructor" }, prof ? el("a", { class: "email" }, prof.displayName) : "TBA"),
-            el("td", {}, pickBtn));
-        }));
+      // Group by course (the course that satisfies the requirement), then by section type,
+      // each type in its own collapsible dropdown.
+      const byCourse = new Map();
+      for (const s of rows) {
+        const key = `${s.subject} ${s.courseNumber}`;
+        if (!byCourse.has(key)) byCourse.set(key, []);
+        byCourse.get(key).push(s);
+      }
+      return el("div", { class: "rr-courses" }, [...byCourse].map(([course, list]) => {
+        const byType = new Map();
+        for (const s of list) {
+          const t = typeName(s);
+          if (!byType.has(t)) byType.set(t, []);
+          byType.get(t).push(s);
+        }
+        const types = [...byType].sort((a, b) => typeRank(a[0]) - typeRank(b[0]) || a[0].localeCompare(b[0]));
+        const openCount = l => l.filter(s => realOpen(s) > 0).length;
+        return el("div", { class: "rr-course" },
+          el("div", { class: "rr-course-title" }, course,
+            el("span", { class: "rr-course-name" }, " · " + titleCase(list[0].courseTitle || ""))),
+          types.map(([type, secs], i) => {
+            const n = openCount(secs);
+            const det = el("details", { class: "rr-type" },
+              el("summary", {},
+                el("span", { class: "rr-type-name" }, plural(type, secs.length)),
+                el("span", { class: n ? "rr-ok" : "rr-full" }, n ? ` · ${n} open` : " · all full")),
+              el("table", { class: "rr-table" },
+                el("tr", {}, ["Section", "When", "Seats", "Instructor", ""].map(h => el("th", {}, h))),
+                // Open sections first, full ones at the bottom (each group keeps section order).
+                [...secs].sort((a, b) => (realOpen(b) > 0) - (realOpen(a) > 0)).map(s => sectionRow(s))));
+            if (i === 0 || types.length <= 2) det.open = true;
+            return det;
+          }));
+      }));
+
+      function sectionRow(s) {
+        const c = conflicts(s, mine);
+        const prof = (s.faculty || []).find(f => f.primaryIndicator) || (s.faculty || [])[0];
+        const open = realOpen(s), note = seatNote(s);
+        const seats = [
+          open > 0
+            ? el("span", { class: "rr-ok" }, `${open}/${s.maximumEnrollment}`)
+            : el("span", { class: "rr-full" }, `Full · WL ${s.waitCount ?? "?"}/${s.waitCapacity ?? "?"}`),
+          note ? el("div", { class: "rr-note", title: note }, open > 0 ? "fewer than listed ⓘ" : "not open to you ⓘ") : null,
+          fillLine(fillOf(s), open)
+        ];
+        const crn = s.courseReferenceNumber;
+        const pickBtn = el("button", { class: "rr-pick" }, picked.has(crn) ? "✓" : "+");
+        pickBtn.addEventListener("click", () => {
+          if (picked.has(crn)) picked.delete(crn); else picked.set(crn, `${s.subject} ${s.courseNumber}`);
+          pickBtn.textContent = picked.has(crn) ? "✓" : "+";
+          refreshPicked();
+        });
+        return el("tr", { class: c && c.length ? "rr-conflict" : "" },
+          el("td", {}, `${s.sequenceNumber}`, el("div", { class: "rr-muted" }, `CRN ${crn}`),
+            s.linkIdentifier ? el("div", { class: "rr-muted", title: "Linked sections: a lecture (L…) must be paired with one discussion/lab (D…/B…)" }, `link ${s.linkIdentifier}`) : null),
+          el("td", {}, meetingText(s),
+            c && c.length ? el("div", { class: "rr-err" }, "Conflicts: " + c.join(", ")) : null),
+          el("td", {}, seats),
+          // data-property="instructor" + a.email lets the RMP badge script pick this up automatically.
+          el("td", { "data-property": "instructor" }, prof ? el("a", { class: "email" }, prof.displayName) : "TBA"),
+          el("td", {}, pickBtn));
+      }
     }
 
     if (mine === null) list.prepend(el("div", { class: "rr-err" }, "Couldn't load your current schedule, so conflicts aren't being checked."));

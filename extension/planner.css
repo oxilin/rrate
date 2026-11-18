@@ -44,3 +44,12 @@
 .rr-fill { color: #666; font-size: 11px; white-space: nowrap; }
 .rr-spark { vertical-align: middle; }
 .rr-spark path { fill: none; stroke: #1f3a6e; stroke-width: 1.5; }
+.rr-req-title { font-size: 14px; }
+.rr-course { margin: 6px 0 12px; }
+.rr-course-title { font-size: 15px; font-weight: 700; color: #1f3a6e; padding: 4px 0; border-bottom: 2px solid #dde6f7; margin-bottom: 4px; }
+.rr-course-name { font-weight: 400; color: #444; font-size: 13px; }
+.rr-type { margin: 2px 0 4px; }
+.rr-type > summary { cursor: pointer; padding: 4px 6px; border-radius: 6px; font-size: 13px; user-select: none; }
+.rr-type > summary:hover { background: #f3f7ff; }
+.rr-type-name { font-weight: 600; }
+.rr-type > .rr-table { margin: 2px 0 6px 14px; width: calc(100% - 14px); }
