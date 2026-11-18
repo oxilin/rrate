@@ -55,9 +55,35 @@ GitHub turns off scheduled workflows in repos with no activity for 60 days. The 
 
 ## Extension
 
-Install it temporarily: go to `about:debugging#/runtime/this-firefox`, click **Load Temporary Add-on…**, and pick `extension/manifest.json`. See `extension/README.md` for how to use it.
+Install it temporarily: go to `about:debugging#/runtime/this-firefox`, click **Load Temporary Add-on…**, and pick `extension/manifest.json`. Open Degree Works once so it saves your requirements, classes, class standing and major.
 
-In the Requirements panel, the seat column now shows:
-- **Real open seats.** A small "not open to you ⓘ" or "fewer than listed ⓘ" note appears when Banner's number is misleading. Hover over it for details.
-- **Prerequisite badge** on each course: ✓ met, ⏳ met if you pass a course you're taking now, ✗ missing (names what's missing), or ⚠ check manually (placement scores, catalog-only notes). Hover for details. "Hide courses I can't take" hides the ✗ ones. Prerequisites come from Banner's `getSectionPrerequisites`; your classes and grades come from the Degree Works audit, so open Degree Works once after updating.
-- **Fill history** from the tracker: a sparkline of open seats over time, plus notes like "−8 in last day", "filled Nov 20", "reopened 2×" and "full since tracking began".
+The **R'Rate** button on the registration site opens a panel with three tabs. There's a term picker at the top.
+
+**Requirements**: your unmet Degree Works requirements, grouped into collapsible blocks. Click a requirement to see the courses that satisfy it, split into **Courses you can take** and **Missing prerequisites or restricted**. Each course shows:
+- a prerequisite badge: ✓ met, ⏳ met if you pass a course you're taking now, ✗ missing, or ⚠ check manually
+- a restriction badge (e.g. "✓ Juniors & Seniors only"), checked against your class standing and major
+- corequisites, e.g. "Also register for WRIT 040Q at the same time"
+- **+ builder**, which adds the course to the Schedule builder
+
+Sections are grouped into Lecture / Discussion / Lab dropdowns, with open sections first. Each section shows:
+- real open seats
+- which sections it pairs with ("goes with lecture 020", "with 1 discussion (D2) + 1 laboratory (B2)")
+- fill history
+- **odds**: whether it's likely to still have a seat at your registration time
+
+**Export my schedule (.ics)** downloads your registered classes as a calendar file.
+
+**Banner's own results table** (`banner-tweaks.js`, `banner-hook.js`, `banner-tweaks.css`): standalone and switchable in Settings.
+- **Re-sort:** within each course, lectures come first, then discussions, then labs. Inside each type, Mon/Wed/Fri sections come before Tue/Thu, then earlier start times. Banner's server can only sort by section number, so R'Rate fetches the whole search once, re-sorts it, and answers each of Banner's page requests with the right slice. Banner's table, paging and buttons work as usual. Column sorting you pick yourself and searches over 3,000 results keep Banner's order.
+- **Results per page:** sets Banner's "Per Page" for you (10, 15, 20 or 50; default 50). Pick fewer on a slow computer. Changing it in Banner yourself overrides it for that visit.
+- **Type tags:** a colored tag (Lecture, Discussion, Lab, Workshop…) on each row, a colored stripe by type, and a line between courses.
+
+**Search results (R'Rate view of Banner's class search)**: after you search in Banner's Browse Classes / Find Classes, an **R'Rate view · all N** button appears next to **Search Again**. It re-runs the same search with every result at once instead of 10 per page. The results open in a wide panel grouped by course, then Lecture / Discussion / Lab, then meeting days (Mon/Wed/Fri patterns before Tue/Thu), with open sections first. Every course gets the same badges, odds and pairing info as the Requirements tab, and sections you're registered for are marked.
+
+**Schedule builder**: add courses, set preferences (days off, start/end times, Monday start, Friday finish, open seats only, keep current registration, skip sections likely full by your time), and click **Find schedules**. It tries every valid lecture + discussion + lab combination, adds corequisites automatically, and ranks the conflict-free schedules by days on campus, gaps, Friday finish and early starts. Each option has a week view, **Copy CRNs** and **Export .ics**.
+
+**Settings**: your registration time (used for the odds), class standing and major (used for restrictions).
+
+**Banner errors**: after you submit, R'Rate adds a plain-English explanation under Banner's registration errors (prerequisite error, time conflict, closed/reserved section, link error, unit limit, restrictions, and so on).
+
+Code layout: `prereqs.js`, `linking.js`, `restrictions.js`, `odds.js`, `builder.js` and `ics.js` are pure logic with no browser APIs. `planner.js` is the panel. `errors.js` adds the error explanations. `dw-content.js` reads Degree Works. `search-hook.js` runs in the registration page and reports the URL of each Banner search, so R'Rate can re-run it.

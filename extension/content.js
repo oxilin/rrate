@@ -69,6 +69,7 @@
 
     // 2) Fallback: any table column whose header says "Instructor".
     document.querySelectorAll("table").forEach(table => {
+      if (table.closest(".rr-panel")) return;
       const headers = [...table.querySelectorAll("thead th, tr:first-child th")];
       const idx = headers.findIndex(th => /^\s*instructor/i.test(th.textContent));
       if (idx < 0) return;
@@ -107,7 +108,10 @@
 
   // Banner loads results with JavaScript, so watch for new rows.
   let timer = null;
-  new MutationObserver(() => {
+  // Ignore changes that are only our own badges being added.
+  const ours = m => m.target.nodeType === 1 && m.target.closest && m.target.closest(".rrate-holder");
+  new MutationObserver(muts => {
+    if (muts.every(ours)) return;
     clearTimeout(timer);
     timer = setTimeout(process, 300);
   }).observe(document.body, { childList: true, subtree: true });

@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
   "name": "R'Rate – UCR Registration Helper",
-  "version": "0.6.2",
-  "description": "RMP scores on UCR registration, plus a panel that finds sections for your unmet Degree Works requirements, with real open seats and fill-up history.",
+  "version": "0.9.0",
+  "description": "RMP scores on UCR registration, plus a panel that finds sections for your unmet Degree Works requirements, with real open seats, fill-up history, prerequisite checks, a schedule builder and calendar export.",
   "browser_specific_settings": {
     "gecko": { "id": "r-rate@ucr-student.local", "strict_min_version": "109.0" }
   },
@@ -13,12 +13,12 @@
     "https://raw.githubusercontent.com/*"
   ],
   "background": { "scripts": ["background.js"] },
-  "web_accessible_resources": ["dw-hook.js"],
+  "web_accessible_resources": ["dw-hook.js", "search-hook.js", "banner-hook.js"],
   "content_scripts": [
     {
       "matches": ["https://registrationssb.ucr.edu/*"],
-      "js": ["content.js", "prereqs.js", "planner.js"],
-      "css": ["styles.css", "planner.css"],
+      "js": ["content.js", "prereqs.js", "linking.js", "restrictions.js", "odds.js", "builder.js", "ics.js", "planner.js", "errors.js", "banner-tweaks.js"],
+      "css": ["styles.css", "planner.css", "banner-tweaks.css"],
       "run_at": "document_idle"
     },
     {

@@ -139,6 +139,28 @@
     return [...out.values()];
   }
 
+  // Class standing and major(s), for course restrictions. Best effort: Degree Works keeps
+  // goals like {code: "MAJOR", valueLiteral: "Computer Engineering"} and a class-level field.
+  function extractStudent(audit) {
+    const majors = new Set();
+    let standing = "";
+    const seen = new WeakSet();
+    (function walk(node) {
+      if (!node || typeof node !== "object" || seen.has(node)) return;
+      seen.add(node);
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (/^major$/i.test(String(node.code || "")) && (node.valueLiteral || node.description))
+        majors.add(String(node.valueLiteral || node.description).trim());
+      for (const [k, v] of Object.entries(node)) {
+        if (typeof v === "string" && !standing && /class|standing/i.test(k)) {
+          const m = /\b(freshman|sophomore|junior|senior)\b/i.exec(v);
+          if (m) standing = m[1].toLowerCase();
+        } else if (v && typeof v === "object") walk(v);
+      }
+    })(audit);
+    return { standing, majors: [...majors] };
+  }
+
   function toast(text) {
     const t = document.createElement("div");
     t.textContent = text;
@@ -193,6 +215,7 @@
     const e = { data: { url: how } };
     const requirements = parseAudit(audit);
     const classes = extractClasses(audit);
+    const student = extractStudent(audit);
     // Small structural sample for debugging (no grades), in case parsing needs fixing.
     const debugSample = {
       capturedVia: e.data.url,
@@ -210,7 +233,7 @@
     debugSample.classCount = classes.length;
     debugSample.classKeys = Array.isArray(rawClasses) && rawClasses[0] ? Object.keys(rawClasses[0]) : null;
     debugSample.classSample = classes.slice(0, 3).map(c => ({ ...c, g: c.g ? "(grade)" : "" }));
-    await browser.storage.local.set({ dwRequirements: requirements, dwClasses: classes, dwCapturedAt: Date.now(), dwDebug: debugSample });
+    await browser.storage.local.set({ dwRequirements: requirements, dwClasses: classes, dwStudent: student, dwCapturedAt: Date.now(), dwDebug: debugSample });
     await browser.storage.local.remove("dwError");
     status(`saved ${requirements.length} unmet requirement${requirements.length === 1 ? "" : "s"} and ${classes.length} classes for prerequisite checks (via ${how}). Open the Registration page and click "Requirements".`, "ok");
   }

@@ -1,0 +1,18 @@
+/* R'Rate tweaks for Banner's class search results table (banner-tweaks.js). */
+.rr-bt-tag {
+  display: inline-block; margin: 0 6px 2px 0; padding: 0 6px; border-radius: 8px;
+  font: 700 10.5px/16px -apple-system, "Segoe UI", sans-serif; letter-spacing: .02em; vertical-align: middle;
+  background: #eef1f6; color: #445;
+}
+.rr-bt-lec { background: #1f3a6e; color: #fff; }
+.rr-bt-dis { background: #dfe9ff; color: #1f3a6e; }
+.rr-bt-lab { background: #e3f5e8; color: #17692f; }
+.rr-bt-wks { background: #fff3d6; color: #8a5a00; }
+.rr-bt-sem, .rr-bt-stu { background: #f1e6ff; color: #5b2a99; }
+
+/* colored stripe on the left of each row by type, and a divider between courses */
+.rr-bt-on #table1 tr[data-rr-type] > td.footable-first-column { box-shadow: inset 4px 0 0 #c7cfdd; }
+.rr-bt-on #table1 tr[data-rr-type="lec"] > td.footable-first-column { box-shadow: inset 4px 0 0 #1f3a6e; }
+.rr-bt-on #table1 tr[data-rr-type="dis"] > td.footable-first-column { box-shadow: inset 4px 0 0 #8fb0ee; }
+.rr-bt-on #table1 tr[data-rr-type="lab"] > td.footable-first-column { box-shadow: inset 4px 0 0 #5fb37b; }
+.rr-bt-on #table1 tr.rr-bt-newcourse > td { border-top: 3px solid #1f3a6e !important; }
