@@ -477,7 +477,7 @@
       }
     }
 
-    async function prereqBadge(section, badge, courseBox) {
+    async function prereqBadge(section, badge, courseBox, onMissing) {
       const term = termSel.value;
       const set = (cls, text, tip) => {
         badge.className = "rr-prq " + cls;
@@ -507,6 +507,7 @@
           const short = t => t.replace(/ \([^)]*or better\)/g, "");
           set("rr-prq-no", `✗ missing ${e.missing.map(short).join("; ")}`, lines);
           courseBox.classList.add("rr-course-noprq");
+          if (onMissing) onMissing();
         } else set("rr-prq-check", e.check.some(t => /placement/i.test(t))
             ? "⚠ check prereqs (placement score counts)" : "⚠ check prereqs (hover for details)", lines || r.note);
       } catch (err) {
@@ -544,7 +545,22 @@
         if (!byCourse.has(key)) byCourse.set(key, []);
         byCourse.get(key).push(s);
       }
-      return el("div", { class: "rr-courses" }, [...byCourse].map(([course, list]) => {
+      // Two dropdowns: courses you can take (prereqs met, in progress, or to check by hand)
+      // and courses you're missing prerequisites for. Every course starts in the first one
+      // and moves down once its prerequisite check comes back missing.
+      const canBody = el("div", { class: "rr-prq-group-body" });
+      const cantBody = el("div", { class: "rr-prq-group-body" });
+      const canSum = el("span"), cantSum = el("span");
+      const canGrp = el("details", { class: "rr-prq-group rr-prq-group-ok" }, el("summary", {}, canSum), canBody);
+      const cantGrp = el("details", { class: "rr-prq-group rr-prq-group-no" }, el("summary", {}, cantSum), cantBody);
+      const refreshGroups = () => {
+        const a = canBody.children.length, b = cantBody.children.length;
+        canSum.textContent = `✓ Courses you can take · ${a}`;
+        cantSum.textContent = `✗ Missing prerequisites · ${b}`;
+        canGrp.classList.toggle("rr-empty", !a);
+        cantGrp.classList.toggle("rr-empty", !b);
+      };
+      const courseBoxes = [...byCourse].map(([course, list]) => {
         const byType = new Map();
         for (const s of list) {
           const t = typeName(s);
@@ -555,7 +571,7 @@
         const openCount = l => l.filter(s => realOpen(s) > 0).length;
         const badge = el("span", { class: "rr-prq rr-prq-wait" }, "checking prereqs…");
         const courseBox = el("div", { class: "rr-course" });
-        prereqBadge(list[0], badge, courseBox);
+        prereqBadge(list[0], badge, courseBox, () => { cantBody.append(courseBox); refreshGroups(); });
         return el(courseBox, {},
           el("div", { class: "rr-course-title" }, course,
             el("span", { class: "rr-course-name" }, " · " + titleCase(list[0].courseTitle || "")), " ", badge),
@@ -571,7 +587,10 @@
                 [...secs].sort((a, b) => (realOpen(b) > 0) - (realOpen(a) > 0)).map(s => sectionRow(s))));
             return det;
           }));
-      }));
+      });
+      canBody.append(...courseBoxes);
+      refreshGroups();
+      return el("div", { class: "rr-courses" }, canGrp, cantGrp);
 
       function sectionRow(s) {
         const c = conflicts(s, mine);

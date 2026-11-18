@@ -64,4 +64,12 @@
 .rr-prq-pending { color: #8a5a00; background: #fff3d6; }
 .rr-prq-check { color: #8a5a00; background: #fff3d6; }
 .rr-prq-no { color: #a12121; background: #fde8e8; }
-.rr-hide-noprq .rr-course-noprq { display: none; }
+.rr-hide-noprq .rr-course-noprq, .rr-hide-noprq .rr-prq-group-no { display: none; }
+.rr-empty { display: none; }
+.rr-prq-group { margin: 4px 0 6px; border: 1px solid #e3e8f2; border-radius: 8px; }
+.rr-prq-group > summary { cursor: pointer; padding: 6px 10px; font-weight: 700; font-size: 13px; user-select: none; border-radius: 8px; }
+.rr-prq-group > summary:hover { background: #f3f7ff; }
+.rr-prq-group-ok > summary { color: #17692f; }
+.rr-prq-group-no > summary { color: #a12121; }
+.rr-prq-group-no { background: #fffafa; }
+.rr-prq-group-body { padding: 0 10px 4px; }
