@@ -21,7 +21,11 @@
 .rr-picked:not(:empty) { padding: 6px 14px; border-bottom: 1px solid #dde6f7; }
 .rr-picked button, .rr-foot button { margin-left: 4px; font-size: 12px; }
 .rr-list { overflow-y: auto; flex: 1; padding: 6px 0; }
-.rr-block { padding: 10px 14px 4px; font-weight: 700; color: #1f3a6e; text-transform: uppercase; font-size: 11px; letter-spacing: .04em; }
+.rr-blockwrap { border-bottom: 1px solid #eef1f7; }
+.rr-block { padding: 9px 14px; font-weight: 700; color: #1f3a6e; text-transform: uppercase; font-size: 12px; letter-spacing: .04em; cursor: pointer; user-select: none; }
+.rr-block:hover { background: #f3f7ff; }
+.rr-block-count { text-transform: none; letter-spacing: 0; font-weight: 400; color: #888; }
+.rr-block-body { padding-bottom: 6px; }
 .rr-req { padding: 7px 14px; cursor: pointer; border-left: 3px solid transparent; }
 .rr-req:hover { background: #f6f8fc; border-left-color: #1f3a6e; }
 .rr-req-title { font-weight: 600; }

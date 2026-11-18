@@ -434,12 +434,20 @@
     await loadMine();
     termSel.addEventListener("change", async () => { await loadMine(); list.querySelectorAll(".rr-sections").forEach(s => s.remove()); });
 
-    let lastBlock = "";
+    // Each Degree Works block (e.g. "Breadth for Bourns College of Engineering") is a
+    // collapsible dropdown, closed to start.
+    const blocks = new Map();
     for (const req of dwRequirements) {
-      if (req.block !== lastBlock) {
-        list.append(el("div", { class: "rr-block" }, req.block));
-        lastBlock = req.block;
+      const name = req.block || "Other requirements";
+      if (!blocks.has(name)) {
+        const body = el("div", { class: "rr-block-body" });
+        const count = dwRequirements.filter(r => (r.block || "Other requirements") === name).length;
+        list.append(el("details", { class: "rr-blockwrap" },
+          el("summary", { class: "rr-block" }, name, el("span", { class: "rr-block-count" }, ` · ${count} unmet`)),
+          body));
+        blocks.set(name, body);
       }
+      const blockBody = blocks.get(name);
       const optText = req.options.filter(o => !isPlaceholder(o)).map(o =>
         o.attrs.length ? `${o.subject && o.subject !== "@" ? o.subject + " " : ""}${o.number && o.number !== "@" ? o.number + (o.numberEnd ? "–" + o.numberEnd : "") + " " : ""}with attribute ${o.attrs.join("/")}`
           : `${o.subject} ${o.number}${o.numberEnd ? "–" + o.numberEnd : ""}`).join(", ");
@@ -452,7 +460,7 @@
           registered ? el("span", { class: "rr-badge-reg" }, `✓ registered: ${registered.subject} ${registered.courseNumber}`) : null),
         el("div", { class: "rr-req-opts" }, optText));
       row.addEventListener("click", () => toggle(row, req));
-      list.append(row);
+      blockBody.append(row);
     }
 
     async function toggle(row, req) {
@@ -551,7 +559,7 @@
         return el(courseBox, {},
           el("div", { class: "rr-course-title" }, course,
             el("span", { class: "rr-course-name" }, " · " + titleCase(list[0].courseTitle || "")), " ", badge),
-          types.map(([type, secs], i) => {
+          types.map(([type, secs]) => {
             const n = openCount(secs);
             const det = el("details", { class: "rr-type" },
               el("summary", {},
@@ -561,7 +569,6 @@
                 el("tr", {}, ["Section", "When", "Seats", "Instructor", ""].map(h => el("th", {}, h))),
                 // Open sections first, full ones at the bottom (each group keeps section order).
                 [...secs].sort((a, b) => (realOpen(b) > 0) - (realOpen(a) > 0)).map(s => sectionRow(s))));
-            if (i === 0 || types.length <= 2) det.open = true;
             return det;
           }));
       }));

@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "R'Rate – UCR Registration Helper",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "RMP scores on UCR registration, plus a panel that finds sections for your unmet Degree Works requirements, with real open seats and fill-up history.",
   "browser_specific_settings": {
     "gecko": { "id": "r-rate@ucr-student.local", "strict_min_version": "109.0" }
