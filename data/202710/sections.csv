@@ -9999,7 +9999,7 @@ crn,subject,number,seq,type,title,credits,link,cross_list,instructor,meetings,st
 59913,BCH,190,R26,Individual Study,SPECIAL STUDIES,2,,,"Radi, Sarah",,active
 59914,CS,265A,021,Laboratory,FOUNDATIONS OF ROBOTICS: PLANNING AND CONTROL,,B1,6D,"Spasojevic, Igor",F 1100-1350 CHUNG 125,active
 59915,EE,265A,021,Laboratory,FOUNDATIONS OF ROBOTICS: PLANNING AND CONTROL,,B1,6D,"Spasojevic, Igor",F 1100-1350 CHUNG 125,active
-59916,PBHL,299,W35,Research,RESEARCH FOR THESIS OR CAPSTONE,4,,,"Wolfson, Mark",,active
+59916,PBHL,299,W35,Research,RESEARCH FOR THESIS OR CAPSTONE,4,0,,"Wolfson, Mark",,active
 59917,PBHL,299,W39,Research,RESEARCH FOR THESIS OR CAPSTONE,1,,,"Woods, Denise",,active
 59918,BCH,197,R26,Research,RESEARCH FOR UNDERGRADUATE STUDENTS,1,,,"Radi, Sarah",,active
 59919,GEO,297,64N,Research,DIRECTED RESEARCH,1,,,"Nanglu, Karma",,active
@@ -11020,7 +11020,7 @@ crn,subject,number,seq,type,title,credits,link,cross_list,instructor,meetings,st
 61220,DNCE,254,021,Consultation,POLITICAL APPROACHES TO DANCE STUDIES,,C1,,"Akbarzadeh, Heather",,active
 61221,DNCE,267,001,Seminar,CHOREOGRAPHIES OF WRITING,4,S1,,"Shea Murphy, Jacqueline",W 1230-1520 ARTS 202,active
 61222,DNCE,267,021,Discussion,CHOREOGRAPHIES OF WRITING,,D1,,"Shea Murphy, Jacqueline",,active
-61224,POSC,209,001,Written Work,ADVANCED POLITICAL METHODOLOGY,4,,,"Ferrari, Diogo",F 0900-1150 WAT 2145,gone
+61224,POSC,209,001,Written Work,ADVANCED POLITICAL METHODOLOGY,4,X1,,"Ferrari, Diogo",F 0900-1150 WAT 2145,active
 61225,GBST,003,001,Discussion,CROSSING CULTURE,1,,,"Nielsen, Selin",T 1100-1150 UTLF 0313,active
 61226,GBST,110,001,Lecture,GLOBAL MIGRATIONS AND MOVEMENTS,4,,,"Nielsen, Selin",TR 1230-1350 PHY 2104,active
 61227,EE,141,021,Laboratory,DIGITAL SIGNAL PROCESSING,,B1,,,W 1100-1350 CHUNG 126,active
@@ -11267,7 +11267,7 @@ crn,subject,number,seq,type,title,credits,link,cross_list,instructor,meetings,st
 61481,MSE,297,H66,Research,DIRECTED RESEARCH,1,,,"Hazeli, Kavan",,active
 61482,MSE,299,H66,Research,RESEARCH FOR THE THESIS OR DISSERTATION,1,,,"Hazeli, Kavan",,active
 61483,ANTH,292,49T,Research,CONCURRENT ANALYTICAL STUDIES IN ANTHROPOLOGY,1,,,"Torres, Christina",,active
-61484,GDIV,310,001,Seminar,DISSERTATION INTENSIVE,,,,"Ceja, Sarah",M 1300-1500,active
+61484,GDIV,310,001,Seminar,DISSERTATION INTENSIVE,2,,,"Ceja, Sarah",M 1300-1500,active
 61491,POSC,291,61N,Research,INDIVIDUAL STUDY IN COORDINATED AREAS,1,,,"Napolio, Nicholas",,active
 61492,POSC,297,61N,Research,DIRECTED RESEARCH,1,,,"Napolio, Nicholas",,active
 61493,BIEN,299,58M,Research,RESEARCH FOR THE THESIS OR DISSERTATION,1,,,"Morrison, Juliet",,active
@@ -11290,3 +11290,8 @@ crn,subject,number,seq,type,title,credits,link,cross_list,instructor,meetings,st
 61510,BMSC,299,75H,Research,RESEARCH FOR DISSERTATION,1,,,"Huffman, Kelly",,active
 61511,EE,005,025,Laboratory,CIRCUITS AND ELECTRONICS,,B1,,,M 0800-1050 CHUNG 121,active
 61512,EE,030B,21,Laboratory,FUNDAMENTALS OF ELECTRIC CIRCUITS 2,,B1,,,R 1100-1350 CHUNG 125,active
+61513,POSC,209,021,Lecture,ADVANCED POLITICAL METHODOLOGY,,L1,,"Ferrari, Diogo",,active
+61514,NRSC,297,0D2,Research,DIRECTED RESEARCH,1,,,"Duistermars, Brian",,active
+61515,NRSC,299,0D2,Research,RESEARCH FOR THE THESIS OR DISSERTATION,1,,,"Duistermars, Brian",,active
+61518,MCBL,297,10X,Research,DIRECTED RESEARCH,1,R1,,"Xiang, Tingting",,active
+61519,MCBL,299,10X,Research,RESEARCH FOR THESIS OR DISSERTATION,1,R1,,"Xiang, Tingting",,active
